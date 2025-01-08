@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/qingwave/weave/pkg/database"
-	"github.com/qingwave/weave/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/database"
+	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

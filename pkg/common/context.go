@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/qingwave/weave/pkg/model"
-	"github.com/qingwave/weave/pkg/utils/request"
-	"github.com/qingwave/weave/pkg/utils/trace"
+	"github.com/eastygh/webm-nas/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/utils/request"
+	"github.com/eastygh/webm-nas/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
 )

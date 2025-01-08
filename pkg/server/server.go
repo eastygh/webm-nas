@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -10,24 +11,21 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/eastygh/webm-nas/docs"
+	"github.com/eastygh/webm-nas/pkg/authentication"
+	"github.com/eastygh/webm-nas/pkg/authentication/oauth"
+	"github.com/eastygh/webm-nas/pkg/authorization"
+	"github.com/eastygh/webm-nas/pkg/common"
+	"github.com/eastygh/webm-nas/pkg/config"
+	"github.com/eastygh/webm-nas/pkg/controller"
+	"github.com/eastygh/webm-nas/pkg/database"
+	"github.com/eastygh/webm-nas/pkg/middleware"
+	"github.com/eastygh/webm-nas/pkg/repository"
+	"github.com/eastygh/webm-nas/pkg/service"
+	"github.com/eastygh/webm-nas/pkg/utils/request"
+	"github.com/eastygh/webm-nas/pkg/utils/set"
+	"github.com/eastygh/webm-nas/pkg/version"
 	"github.com/pkg/errors"
-	_ "github.com/qingwave/weave/docs"
-	"github.com/qingwave/weave/pkg/authentication"
-	"github.com/qingwave/weave/pkg/authentication/oauth"
-	"github.com/qingwave/weave/pkg/authorization"
-	"github.com/qingwave/weave/pkg/common"
-	"github.com/qingwave/weave/pkg/config"
-	"github.com/qingwave/weave/pkg/controller"
-	"github.com/qingwave/weave/pkg/controller/kubecontroller"
-	"github.com/qingwave/weave/pkg/database"
-	"github.com/qingwave/weave/pkg/library/docker"
-	"github.com/qingwave/weave/pkg/library/kubernetes"
-	"github.com/qingwave/weave/pkg/middleware"
-	"github.com/qingwave/weave/pkg/repository"
-	"github.com/qingwave/weave/pkg/service"
-	"github.com/qingwave/weave/pkg/utils/request"
-	"github.com/qingwave/weave/pkg/utils/set"
-	"github.com/qingwave/weave/pkg/version"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -42,7 +40,12 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, err
 	}
 
-	db, err := database.NewPostgres(&conf.DB)
+	var db *gorm.DB
+	if conf.DB.Type == "sqlite" {
+		db, err = database.NewSqlite(&conf.DB)
+	} else {
+		db, err = database.NewPostgres(&conf.DB)
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "db init failed")
 	}
@@ -52,60 +55,34 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, errors.Wrap(err, "redis client failed")
 	}
 
-	var conClient *docker.Client
-	if conf.Docker.Enable {
-		conClient, err = docker.NewClient(conf.Docker.Host)
-		if err != nil {
-			logrus.Warningf("failed to create docker client, container api disabled: %v", err)
-			conf.Docker.Enable = false
-		}
-	}
-
-	var kubeClient *kubernetes.KubeClient
-	if conf.Kubernetes.Enable {
-		kubeClient, err = kubernetes.NewClient(&conf.Kubernetes)
-		if err != nil {
-			logrus.Warnf("failed to create k8s client: %v", err)
-			conf.Kubernetes.Enable = false
-		}
-	}
-
-	repository := repository.NewRepository(db, rdb)
+	modelRepository := repository.NewRepository(db, rdb)
 	if conf.DB.Migrate {
-		if err := repository.Migrate(); err != nil {
+		if err := modelRepository.Migrate(); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := repository.Init(); err != nil {
+	if err := modelRepository.Init(); err != nil {
 		return nil, err
 	}
 
-	userService := service.NewUserService(repository.User())
-	groupService := service.NewGroupService(repository.Group(), repository.User())
+	userService := service.NewUserService(modelRepository.User())
+	groupService := service.NewGroupService(modelRepository.Group(), modelRepository.User())
 	jwtService := authentication.NewJWTService(conf.Server.JWTSecret)
-	rbacService := service.NewRBACService(repository.RBAC())
+	rbacService := service.NewRBACService(modelRepository.RBAC())
 	oauthManager := oauth.NewOAuthManager(conf.OAuthConfig)
 
 	userController := controller.NewUserController(userService)
 	groupController := controller.NewGroupController(groupService)
 	authController := controller.NewAuthController(userService, jwtService, oauthManager)
-	containerController := controller.NewContainerController(conClient)
 	rbacController := controller.NewRbacController(rbacService)
-	kubeController := kubecontroller.NewKubeControllers(kubeClient, groupService)
-	postController := controller.NewPostController(service.NewPostService(repository.Post()))
+	postController := controller.NewPostController(service.NewPostService(modelRepository.Post()))
 
-	if err := authorization.InitAuthorization(repository); err != nil {
+	if err := authorization.InitAuthorization(modelRepository); err != nil {
 		return nil, err
 	}
 
 	controllers := []controller.Controller{userController, groupController, authController, rbacController, postController}
-	if conf.Docker.Enable {
-		controllers = append(controllers, containerController)
-	}
-	if conf.Kubernetes.Enable {
-		controllers = append(controllers, kubeController)
-	}
 
 	gin.SetMode(conf.Server.ENV)
 
@@ -117,7 +94,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		middleware.CORSMiddleware(),
 		middleware.RequestInfoMiddleware(&request.RequestInfoFactory{APIPrefixes: set.NewString("api")}),
 		middleware.LogMiddleware(logger, "/"),
-		middleware.AuthenticationMiddleware(jwtService, repository.User()),
+		middleware.AuthenticationMiddleware(jwtService, modelRepository.User()),
 		middleware.AuthorizationMiddleware(),
 		middleware.TraceMiddleware(),
 	)
@@ -125,13 +102,11 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	e.LoadHTMLFiles("static/terminal.html")
 
 	return &Server{
-		engine:          e,
-		config:          conf,
-		logger:          logger,
-		repository:      repository,
-		containerClient: conClient,
-		kubeClient:      kubeClient,
-		controllers:     controllers,
+		engine:      e,
+		config:      conf,
+		logger:      logger,
+		repository:  modelRepository,
+		controllers: controllers,
 	}, nil
 }
 
@@ -140,9 +115,7 @@ type Server struct {
 	config *config.Config
 	logger *logrus.Logger
 
-	containerClient *docker.Client
-	kubeClient      *kubernetes.KubeClient
-	repository      repository.Repository
+	repository repository.Repository
 
 	controllers []controller.Controller
 }
@@ -153,12 +126,6 @@ func (s *Server) Run() error {
 
 	s.initRouter()
 
-	if s.kubeClient != nil {
-		if err := s.kubeClient.StartCache(); err != nil {
-			return err
-		}
-	}
-
 	addr := fmt.Sprintf("%s:%d", s.config.Server.Address, s.config.Server.Port)
 	s.logger.Infof("Start server on: %s", addr)
 
@@ -168,7 +135,7 @@ func (s *Server) Run() error {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			s.logger.Fatalf("Failed to start server, %v", err)
 		}
 	}()
@@ -190,18 +157,19 @@ func (s *Server) Close() {
 		s.logger.Warnf("failed to close repository, %v", err)
 	}
 
-	if s.containerClient != nil {
-		if err := s.containerClient.Close(); err != nil {
-			s.logger.Warnf("failed to close container client, %v", err)
-		}
-	}
 }
 
 func (s *Server) initRouter() {
 	root := s.engine
 
+	// Set if static content is enabled
+	MapStaticContent(s.engine, &s.config.Static, s.logger)
+	// Set if revers proxies are enabled
+	CreateProxies(s.engine, &s.config.Revers, s.logger)
+
 	// register non-resource routers
-	root.GET("/", common.WrapFunc(s.getRoutes))
+	root.GET("/routes", common.WrapFunc(s.getRoutes))
+
 	root.GET("/index", controller.Index)
 	root.GET("/healthz", common.WrapFunc(s.Ping))
 	root.GET("/version", common.WrapFunc(version.Get))

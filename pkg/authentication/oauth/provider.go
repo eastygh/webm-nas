@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/qingwave/weave/pkg/config"
-	"github.com/qingwave/weave/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/config"
+	"github.com/eastygh/webm-nas/pkg/model"
 
 	"golang.org/x/oauth2"
 )

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/qingwave/weave/pkg/database"
-	"github.com/qingwave/weave/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/database"
+	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -152,30 +152,6 @@ func (r *repository) Init() error {
 		{
 			Name:  model.NamespaceResource,
 			Scope: model.ClusterScope,
-		},
-		{
-			Name:  model.KubeDeployment,
-			Scope: model.NamespaceScope,
-		},
-		{
-			Name:  model.KubeStatefulset,
-			Scope: model.NamespaceScope,
-		},
-		{
-			Name:  model.KubeDaemonset,
-			Scope: model.NamespaceScope,
-		},
-		{
-			Name:  model.KubePod,
-			Scope: model.NamespaceScope,
-		},
-		{
-			Name:  model.KubeService,
-			Scope: model.NamespaceScope,
-		},
-		{
-			Name:  model.KubeIngress,
-			Scope: model.NamespaceScope,
 		},
 	}
 

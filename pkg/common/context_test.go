@@ -4,11 +4,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/eastygh/webm-nas/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/utils/request"
+	"github.com/eastygh/webm-nas/pkg/utils/trace"
 	"github.com/gin-gonic/gin"
 	"github.com/go-logr/logr"
-	"github.com/qingwave/weave/pkg/model"
-	"github.com/qingwave/weave/pkg/utils/request"
-	"github.com/qingwave/weave/pkg/utils/trace"
 	"github.com/stretchr/testify/assert"
 )
 

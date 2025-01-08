@@ -4,9 +4,9 @@ import (
 	"flag"
 	"os"
 
-	"github.com/qingwave/weave/pkg/config"
-	"github.com/qingwave/weave/pkg/server"
-	"github.com/qingwave/weave/pkg/version"
+	"github.com/eastygh/webm-nas/pkg/config"
+	"github.com/eastygh/webm-nas/pkg/server"
+	"github.com/eastygh/webm-nas/pkg/version"
 
 	"github.com/sirupsen/logrus"
 )

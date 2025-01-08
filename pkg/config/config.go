@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/qingwave/weave/pkg/utils/ratelimit"
+	"github.com/eastygh/webm-nas/pkg/utils/ratelimit"
 
 	"gopkg.in/yaml.v2"
 )
@@ -13,8 +13,8 @@ type Config struct {
 	DB          DBConfig               `yaml:"db"`
 	Redis       RedisConfig            `yaml:"redis"`
 	OAuthConfig map[string]OAuthConfig `yaml:"oauth"`
-	Docker      DockerConfig           `yaml:"docker"`
-	Kubernetes  KubeConfig             `yaml:"kubernetes"`
+	Revers      ReversProxyConfig      `yaml:"revers"`
+	Static      StaticContentConfig    `yaml:"static"`
 }
 
 type ServerConfig struct {
@@ -27,12 +27,25 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
+	Type     string `yaml:"type"`
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	Name     string `yaml:"name"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
+	Filename string `yaml:"filename"`
 	Migrate  bool   `yaml:"migrate"`
+}
+
+type ReversProxyConfig struct {
+	Enable    bool              `yaml:"enable"`
+	ProxyUrls map[string]string `yaml:"proxyUrls"`
+}
+
+type StaticContentConfig struct {
+	Enable   bool              `yaml:"enable"`
+	Contents map[string]string `yaml:"contents"` // key: path, value: dir
+	SpaPath  string            `yaml:"spaPath"`  // which is the base uri using for spa
 }
 
 type RedisConfig struct {
@@ -46,16 +59,6 @@ type OAuthConfig struct {
 	AuthType     string `yaml:"authType"`
 	ClientId     string `yaml:"clientId"`
 	ClientSecret string `yaml:"clientSecret"`
-}
-
-type DockerConfig struct {
-	Enable bool   `yaml:"enable"`
-	Host   string `yaml:"host"`
-}
-
-type KubeConfig struct {
-	Enable         bool     `yaml:"enable"`
-	WatchResources []string `yaml:"watchResources"`
 }
 
 func Parse(appConfig string) (*Config, error) {

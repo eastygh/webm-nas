@@ -3,9 +3,9 @@ package service
 import (
 	"strconv"
 
-	"github.com/qingwave/weave/pkg/model"
-	"github.com/qingwave/weave/pkg/repository"
-	"github.com/qingwave/weave/pkg/utils/request"
+	"github.com/eastygh/webm-nas/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/repository"
+	"github.com/eastygh/webm-nas/pkg/utils/request"
 )
 
 type rbacService struct {

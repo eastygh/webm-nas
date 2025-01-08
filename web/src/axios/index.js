@@ -67,7 +67,8 @@ request.interceptors.response.use(response => {
                 msg = `request failed with code ${error.code}`;
         }
     } else {
-        if (error == anonymous) {
+        if (
+            error === anonymous) {
             return
         }
         msg = `network failed with error ${error}`

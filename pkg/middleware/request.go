@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/qingwave/weave/pkg/common"
-	"github.com/qingwave/weave/pkg/utils/request"
+	"github.com/eastygh/webm-nas/pkg/common"
+	"github.com/eastygh/webm-nas/pkg/utils/request"
 
 	"github.com/gin-gonic/gin"
 )

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/qingwave/weave/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/model"
 
 	"github.com/golang-jwt/jwt/v4"
 )

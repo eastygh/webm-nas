@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/qingwave/weave/pkg/config"
+	"github.com/eastygh/webm-nas/pkg/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

@@ -1,9 +1,9 @@
 # Weave
 
-[![workflows](https://github.com/qingwave/weave/workflows/weave/badge.svg)](https://github.com/qingwave/weave/actions?query=workflow%3Aweave)
+[![workflows](https://github.com/eastygh/webm-nas/workflows/weave/badge.svg)](https://github.com/eastygh/webm-nas/actions?query=workflow%3Aweave)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qingwave/weave)](https://goreportcard.com/report/github.com/qingwave/weave)
 [![codecov](https://codecov.io/gh/qingwave/weave/branch/master/graph/badge.svg?token=B93TcvKqA6)](https://codecov.io/gh/qingwave/weave)
-[![GitHub license](https://img.shields.io/github/license/qingwave/weave)](https://github.com/qingwave/weave/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/qingwave/weave)](https://github.com/eastygh/webm-nas/blob/master/LICENSE)
 
 <img src="web/src/assets/weave.png" width="50px">
 

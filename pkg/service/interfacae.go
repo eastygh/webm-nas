@@ -1,6 +1,6 @@
 package service
 
-import "github.com/qingwave/weave/pkg/model"
+import "github.com/eastygh/webm-nas/pkg/model"
 
 type UserService interface {
 	List() (model.Users, error)

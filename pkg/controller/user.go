@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/qingwave/weave/pkg/authorization"
-	"github.com/qingwave/weave/pkg/common"
-	"github.com/qingwave/weave/pkg/model"
-	"github.com/qingwave/weave/pkg/service"
-	"github.com/qingwave/weave/pkg/utils/trace"
+	"github.com/eastygh/webm-nas/pkg/authorization"
+	"github.com/eastygh/webm-nas/pkg/common"
+	"github.com/eastygh/webm-nas/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/service"
+	"github.com/eastygh/webm-nas/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

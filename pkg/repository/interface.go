@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/qingwave/weave/pkg/model"
+	"github.com/eastygh/webm-nas/pkg/model"
 	"gorm.io/gorm/clause"
 )
 

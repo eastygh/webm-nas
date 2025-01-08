@@ -14,32 +14,22 @@ server:
       cacheSize: 2048
   jwtSecret: weaveserver
 
-docker:
-  enable: true # enable docker, start dockerd at first
-  host: unix:///var/run/docker.sock
-
-kubernetes:
-  enable: true # set `KUBECONFIG` env or flag --kubeconfig at first
-  watchResources:
-  - "Deployment.v1.apps"
-  - "Pod.v1."
-  - "Namespace.v1."
-
 db:
+  type: sqlite
   port: 5432 
   host: "localhost"
-  name: "weave"
+  name: "webm"
   user: "postgres"
   password: "123456"
+  filename: "webm-store.db"
   migrate: true
 
-redis:
+revers:
   enable: true
-  port: 6379 
-  host: "localhost"
-  password: "123456"
+  proxyUrls:
+    "/transmission": "http://nas:9091/transmission"
 
-oauth:
-  github:
-    clientId: "85db232fde2c9320ece7" # set your client id
-    clientSecret: "" # set your client secret
+static:
+  enable: true
+  contents:
+    "/": "./web/dist/"

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/qingwave/weave/pkg/config"
+	"github.com/eastygh/webm-nas/pkg/config"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"

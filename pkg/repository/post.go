@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/eastygh/webm-nas/pkg/database"
 	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
@@ -9,14 +8,12 @@ import (
 )
 
 type postRepository struct {
-	db  *gorm.DB
-	rdb *database.RedisDB
+	db *gorm.DB
 }
 
-func newPostRepository(db *gorm.DB, rdb *database.RedisDB) PostRepository {
+func newPostRepository(db *gorm.DB) PostRepository {
 	return &postRepository{
-		db:  db,
-		rdb: rdb,
+		db: db,
 	}
 }
 

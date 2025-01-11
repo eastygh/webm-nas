@@ -15,7 +15,7 @@ const authInfo = {
 };
 
 const githubInfo = {
-    project: 'https://github.com/qingwave/weave',
+    project: 'https://github.com/eastygh/webm-nas',
     doc: 'https://github.com/eastygh/webm-nas/blob/master/README.md#weave',
 }
 

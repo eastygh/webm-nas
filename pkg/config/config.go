@@ -22,6 +22,7 @@ type ServerConfig struct {
 	Address                string                  `yaml:"address"`
 	Port                   int                     `yaml:"port"`
 	GracefulShutdownPeriod int                     `yaml:"gracefulShutdownPeriod"`
+	AllowInsecure          bool                    `yaml:"allowInsecure"`
 	LimitConfigs           []ratelimit.LimitConfig `yaml:"rateLimits"`
 	JWTSecret              string                  `yaml:"jwtSecret"`
 }

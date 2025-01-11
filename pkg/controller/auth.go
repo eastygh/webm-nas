@@ -2,10 +2,10 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/eastygh/webm-nas/pkg/config"
 	"net/http"
 
 	"github.com/eastygh/webm-nas/pkg/authentication"
-	"github.com/eastygh/webm-nas/pkg/authentication/oauth"
 	"github.com/eastygh/webm-nas/pkg/common"
 	"github.com/eastygh/webm-nas/pkg/model"
 	"github.com/eastygh/webm-nas/pkg/service"
@@ -16,14 +16,14 @@ import (
 type AuthController struct {
 	userService service.UserService
 	jwtService  *authentication.JWTService
-	oauthManger *oauth.OAuthManager
+	config      *config.Config
 }
 
-func NewAuthController(userService service.UserService, jwtService *authentication.JWTService, oauthManager *oauth.OAuthManager) Controller {
+func NewAuthController(userService service.UserService, jwtService *authentication.JWTService, config *config.Config) Controller {
 	return &AuthController{
 		userService: userService,
 		jwtService:  jwtService,
-		oauthManger: oauthManager,
+		config:      config,
 	}
 }
 
@@ -44,28 +44,9 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 	var user *model.User
 	var err error
-	if !oauth.IsEmptyAuthType(auser.AuthType) && auser.Name == "" {
-		provider, err := ac.oauthManger.GetAuthProvider(auser.AuthType)
-		if err != nil {
-			common.ResponseFailed(c, http.StatusBadRequest, err)
-			return
-		}
-		authToken, err := provider.GetToken(auser.AuthCode)
-		if err != nil {
-			common.ResponseFailed(c, http.StatusBadRequest, err)
-			return
-		}
 
-		userInfo, err := provider.GetUserInfo(authToken)
-		if err != nil {
-			common.ResponseFailed(c, http.StatusBadRequest, err)
-			return
-		}
+	user, err = ac.userService.Auth(auser)
 
-		user, err = ac.userService.CreateOAuthUser(userInfo.User())
-	} else {
-		user, err = ac.userService.Auth(auser)
-	}
 	if err != nil {
 		common.ResponseFailed(c, http.StatusUnauthorized, err)
 		return
@@ -83,8 +64,9 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 	if auser.SetCookie {
-		c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", true, true)
-		c.SetCookie(common.CookieLoginUser, string(userJson), 3600*24, "/", "", true, false)
+		var secure = ac.getCookieSecureFlag(c)
+		c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", secure, true)
+		c.SetCookie(common.CookieLoginUser, string(userJson), 3600*24, "/", "", secure, false)
 	}
 
 	common.ResponseSuccess(c, model.JWTToken{
@@ -100,8 +82,9 @@ func (ac *AuthController) Login(c *gin.Context) {
 // @Success 200 {object} common.Response
 // @Router /api/v1/auth/token [delete]
 func (ac *AuthController) Logout(c *gin.Context) {
-	c.SetCookie(common.CookieTokenName, "", -1, "/", "", true, true)
-	c.SetCookie(common.CookieLoginUser, "", -1, "/", "", true, false)
+	var secure = ac.getCookieSecureFlag(c)
+	c.SetCookie(common.CookieTokenName, "", -1, "/", "", secure, true)
+	c.SetCookie(common.CookieLoginUser, "", -1, "/", "", secure, false)
 	common.ResponseSuccess(c, nil)
 }
 
@@ -143,4 +126,8 @@ func (ac *AuthController) RegisterRoute(api *gin.RouterGroup) {
 
 func (ac *AuthController) Name() string {
 	return "Authentication"
+}
+
+func (ac *AuthController) getCookieSecureFlag(c *gin.Context) bool {
+	return c.Request.TLS == nil && ac.config.Server.AllowInsecure
 }

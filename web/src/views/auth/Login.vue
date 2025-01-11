@@ -1,10 +1,10 @@
 <template>
-  <div class="h-full login-bg bg-slate-50">
+  <div class="h-full bg-slate-50">
     <div class="flex h-full justify-center items-center">
       <div class="h-max min-w-[16rem] w-1/4 max-w-[24rem] text-center items-center">
         <div class="inline-flex mt-4 mb-8 items-center">
           <img src="@/assets/weave.png" class="h-12 mr-2" />
-          <h1 class="font-bold text-4xl font-mono">Weave</h1>
+          <h1 class="font-bold text-4xl font-mono">NAS326</h1>
         </div>
 
         <div v-if="showLogin">
@@ -26,54 +26,14 @@
               </el-form-item>
             </el-form>
 
-            <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
-            <div class="w-full flex mt-[0.25rem]">
-              <div class="w-full text-right">
-                <el-button link @click="showLogin=false">SIGN UP</el-button>
-              </div>
-            </div>
-            
-            <div class="my-[0.5rem]">
-              <el-button link @click="oauthLogin('github')">
-                <Github theme="outline" size="30" fill="#333" />
-              </el-button>
-              <el-button link @click="oauthLogin('wechat')">
-                <Wechat theme="filled" size="30" fill="#7ed321" />
-              </el-button>
-            </div>
+            <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">LOGIN</el-button>
         </div>
-
-          <div v-if="showLogin == false">
-            <el-form ref="registerFormRef" :model="registerUser" label-position="top" :rules="rules"
-              label-width="auto" size="large">
-              <el-form-item label="Username" prop="name">
-                <el-input placeholder="user name" v-model="registerUser.name" size="large"></el-input>
-              </el-form-item>
-              <el-form-item label="Email" prop="email">
-                <el-input placeholder="email" v-model="registerUser.email"></el-input>
-              </el-form-item>
-              <el-form-item label="Password" prop="password">
-                <el-input placeholder="password" minlength="6" v-model="registerUser.password"></el-input>
-              </el-form-item>
-            </el-form>
-            
-            <el-button class="w-full" type="primary" size="large" @click="register(registerFormRef)">SIGN UP</el-button>
-            <div class="mt-[0.25rem] text-right">
-              <el-button link @click="showLogin=true">SIGN IN</el-button>
-            </div>
-          </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.login-bg {
-  background-image: url('@/assets/login-bg.svg');
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-  background-position: 0 100%;
-}
 </style>
 
 <script setup>

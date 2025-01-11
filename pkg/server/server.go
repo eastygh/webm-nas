@@ -13,7 +13,6 @@ import (
 
 	_ "github.com/eastygh/webm-nas/docs"
 	"github.com/eastygh/webm-nas/pkg/authentication"
-	"github.com/eastygh/webm-nas/pkg/authentication/oauth"
 	"github.com/eastygh/webm-nas/pkg/authorization"
 	"github.com/eastygh/webm-nas/pkg/common"
 	"github.com/eastygh/webm-nas/pkg/config"
@@ -44,18 +43,13 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	if conf.DB.Type == "sqlite" {
 		db, err = database.NewSqlite(&conf.DB)
 	} else {
-		db, err = database.NewPostgres(&conf.DB)
+		//db, err = database.NewPostgres(&conf.DB) or some other db
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, "db init failed")
 	}
 
-	rdb, err := database.NewRedisClient(&conf.Redis)
-	if err != nil {
-		return nil, errors.Wrap(err, "redis client failed")
-	}
-
-	modelRepository := repository.NewRepository(db, rdb)
+	modelRepository := repository.NewRepository(db)
 	if conf.DB.Migrate {
 		if err := modelRepository.Migrate(); err != nil {
 			return nil, err
@@ -70,11 +64,10 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	groupService := service.NewGroupService(modelRepository.Group(), modelRepository.User())
 	jwtService := authentication.NewJWTService(conf.Server.JWTSecret)
 	rbacService := service.NewRBACService(modelRepository.RBAC())
-	oauthManager := oauth.NewOAuthManager(conf.OAuthConfig)
 
 	userController := controller.NewUserController(userService)
 	groupController := controller.NewGroupController(groupService)
-	authController := controller.NewAuthController(userService, jwtService, oauthManager)
+	authController := controller.NewAuthController(userService, jwtService, conf)
 	rbacController := controller.NewRbacController(rbacService)
 	postController := controller.NewPostController(service.NewPostService(modelRepository.Post()))
 
@@ -168,15 +161,16 @@ func (s *Server) initRouter() {
 	CreateProxies(s.engine, &s.config.Revers, s.logger)
 
 	// register non-resource routers
-	root.GET("/routes", common.WrapFunc(s.getRoutes))
+	manage := root.Group("/m")
+	manage.GET("/routes", common.WrapFunc(s.getRoutes))
 
-	root.GET("/index", controller.Index)
-	root.GET("/healthz", common.WrapFunc(s.Ping))
-	root.GET("/version", common.WrapFunc(version.Get))
-	root.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	root.Any("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
+	manage.GET("/index", controller.Index)
+	manage.GET("/health", common.WrapFunc(s.Ping))
+	manage.GET("/version", common.WrapFunc(version.Get))
+	manage.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	manage.Any("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
 	if gin.Mode() != gin.ReleaseMode {
-		root.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+		manage.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
 
 	api := root.Group("/api/v1")

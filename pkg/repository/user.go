@@ -2,12 +2,9 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/eastygh/webm-nas/pkg/database"
 	"github.com/eastygh/webm-nas/pkg/model"
 
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -16,14 +13,12 @@ var (
 )
 
 type userRepository struct {
-	db  *gorm.DB
-	rdb *database.RedisDB
+	db *gorm.DB
 }
 
-func newUserRepository(db *gorm.DB, rdb *database.RedisDB) UserRepository {
+func newUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{
-		db:  db,
-		rdb: rdb,
+		db: db,
 	}
 }
 
@@ -39,9 +34,6 @@ func (u *userRepository) Create(user *model.User) (*model.User, error) {
 	if err := u.db.Select(userCreateField).Create(user).Error; err != nil {
 		return nil, err
 	}
-
-	u.setCacheUser(user)
-
 	return user, nil
 }
 
@@ -49,9 +41,6 @@ func (u *userRepository) Update(user *model.User) (*model.User, error) {
 	if err := u.db.Model(&model.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
 		return nil, err
 	}
-
-	u.rdb.HDel(user.CacheKey(), strconv.Itoa(int(user.ID)))
-
 	return user, nil
 }
 
@@ -60,7 +49,6 @@ func (u *userRepository) Delete(user *model.User) error {
 	if err != nil {
 		return err
 	}
-	u.rdb.HDel(user.CacheKey(), strconv.Itoa(int(user.ID)))
 	return nil
 }
 
@@ -74,11 +62,6 @@ func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
 	if err := u.db.Omit("Password").Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Roles").First(user, id).Error; err != nil {
 		return nil, err
 	}
-
-	if err := u.setCacheUser(user); err != nil {
-		logrus.Errorf("failed to set user: %v", err)
-	}
-
 	return user, nil
 }
 
@@ -132,26 +115,4 @@ func (u *userRepository) GetGroups(user *model.User) ([]model.Group, error) {
 
 func (u *userRepository) Migrate() error {
 	return u.db.AutoMigrate(&model.User{}, &model.AuthInfo{})
-}
-
-func (u *userRepository) setCacheUser(user *model.User) error {
-	if user == nil {
-		return nil
-	}
-
-	return u.rdb.HSet(user.CacheKey(), strconv.Itoa(int(user.ID)), user)
-}
-
-func (u *userRepository) getCacheUser(id uint) *model.User {
-	user := new(model.User)
-	key := user.CacheKey()
-	field := strconv.Itoa(int(id))
-	if err := u.rdb.HGet(key, field, user); err != nil {
-		if err != database.RedisDisableError {
-			logrus.Warnf("failed to hget field %s from key %s, %v", field, key, err)
-		}
-		return nil
-	}
-
-	return user
 }

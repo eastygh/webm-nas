@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/eastygh/webm-nas/pkg/database"
 	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
@@ -13,14 +12,12 @@ var (
 )
 
 type groupRepository struct {
-	db  *gorm.DB
-	rdb *database.RedisDB
+	db *gorm.DB
 }
 
-func newGroupRepository(db *gorm.DB, rdb *database.RedisDB) GroupRepository {
+func newGroupRepository(db *gorm.DB) GroupRepository {
 	return &groupRepository{
-		db:  db,
-		rdb: rdb,
+		db: db,
 	}
 }
 

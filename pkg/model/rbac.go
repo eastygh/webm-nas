@@ -62,18 +62,30 @@ type Rule struct {
 type Rules []Rule
 
 func (r *Rules) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	var bytes []byte
+
+	switch v := value.(type) {
+	case string:
+		bytes = []byte(v)
+	case []byte:
+		bytes = v
+	default:
+		return fmt.Errorf("Unsupported scan type: %T", value)
 	}
 
-	result := Rules{}
-	err := json.Unmarshal(bytes, &result)
-	*r = result
-	return err
+	if len(bytes) == 0 {
+		*r = Rules{} // Set r to an empty Rules struct if bytes are empty
+		return nil
+	}
+
+	if err := json.Unmarshal(bytes, r); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	return nil
 }
 
-func (r Rules) Value() (driver.Value, error) {
+func (r *Rules) Value() (driver.Value, error) {
 	b, err := json.Marshal(r)
 	return string(b), err
 }

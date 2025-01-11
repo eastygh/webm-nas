@@ -3,6 +3,7 @@ server:
   address: "127.0.0.1"
   port: 8080
   gracefulShutdownPeriod: 30
+  allowInsecure: true
   rateLimits:
     - limitType: "server"
       burst: 500
@@ -16,11 +17,6 @@ server:
 
 db:
   type: sqlite
-  port: 5432 
-  host: "localhost"
-  name: "webm"
-  user: "postgres"
-  password: "123456"
   filename: "webm-store.db"
   migrate: true
 

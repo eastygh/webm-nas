@@ -3,21 +3,19 @@ package repository
 import (
 	"context"
 
-	"github.com/eastygh/webm-nas/pkg/database"
 	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func NewRepository(db *gorm.DB, rdb *database.RedisDB) Repository {
+func NewRepository(db *gorm.DB) Repository {
 	r := &repository{
 		db:    db,
-		rdb:   rdb,
-		user:  newUserRepository(db, rdb),
-		group: newGroupRepository(db, rdb),
-		post:  newPostRepository(db, rdb),
-		rbac:  newRBACRepository(db, rdb),
+		user:  newUserRepository(db),
+		group: newGroupRepository(db),
+		post:  newPostRepository(db),
+		rbac:  newRBACRepository(db),
 	}
 
 	r.migrants = getMigrants(
@@ -46,7 +44,6 @@ type repository struct {
 	post     PostRepository
 	rbac     RBACRepository
 	db       *gorm.DB
-	rdb      *database.RedisDB
 	migrants []Migrant
 }
 
@@ -74,12 +71,6 @@ func (r *repository) Close() error {
 		}
 	}
 
-	if r.rdb != nil {
-		if err := r.rdb.Close(); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -89,13 +80,6 @@ func (r *repository) Ping(ctx context.Context) error {
 		return err
 	}
 	if err = db.PingContext(ctx); err != nil {
-		return err
-	}
-
-	if r.rdb == nil {
-		return nil
-	}
-	if _, err := r.rdb.Ping(ctx).Result(); err != nil {
 		return err
 	}
 

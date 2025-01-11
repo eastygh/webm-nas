@@ -125,11 +125,6 @@ const routes = [
     component: () => import("views/auth/Login.vue")
   },
   {
-    path: '/oauth',
-    name: 'OAuth',
-    component: () => import("views/auth/OAuth.vue")
-  },
-  {
     path: '/docs',
     name: 'Document',
     component: () => import("views/doc/List.vue"),

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/eastygh/webm-nas/pkg/database"
 	"github.com/eastygh/webm-nas/pkg/model"
 
 	"gorm.io/gorm"
@@ -9,14 +8,12 @@ import (
 )
 
 type rbacRepository struct {
-	db  *gorm.DB
-	rdb *database.RedisDB
+	db *gorm.DB
 }
 
-func newRBACRepository(db *gorm.DB, rdb *database.RedisDB) RBACRepository {
+func newRBACRepository(db *gorm.DB) RBACRepository {
 	return &rbacRepository{
-		db:  db,
-		rdb: rdb,
+		db: db,
 	}
 }
 

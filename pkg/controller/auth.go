@@ -64,7 +64,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 	if auser.SetCookie {
-		var secure = ac.getCookieSecureFlag(c)
+		var secure = !ac.isAllowInsecure(c)
 		c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", secure, true)
 		c.SetCookie(common.CookieLoginUser, string(userJson), 3600*24, "/", "", secure, false)
 	}
@@ -82,7 +82,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 // @Success 200 {object} common.Response
 // @Router /api/v1/auth/token [delete]
 func (ac *AuthController) Logout(c *gin.Context) {
-	var secure = ac.getCookieSecureFlag(c)
+	var secure = !ac.isAllowInsecure(c)
 	c.SetCookie(common.CookieTokenName, "", -1, "/", "", secure, true)
 	c.SetCookie(common.CookieLoginUser, "", -1, "/", "", secure, false)
 	common.ResponseSuccess(c, nil)
@@ -128,6 +128,6 @@ func (ac *AuthController) Name() string {
 	return "Authentication"
 }
 
-func (ac *AuthController) getCookieSecureFlag(c *gin.Context) bool {
+func (ac *AuthController) isAllowInsecure(c *gin.Context) bool {
 	return c.Request.TLS == nil && ac.config.Server.AllowInsecure
 }
